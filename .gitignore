@@ -1,0 +1,68 @@
+# ── Secrets — NEVER commit ───────────────────────────────
+.env
+*.env
+.env.local
+.env.production
+**/secrets/
+
+# ── Python ────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+venv/
+env/
+.venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+*.so
+
+# ── Logs ─────────────────────────────────────────────────
+logs/
+*.log
+*.pid
+
+# ── Uploads & Vector DB (runtime data) ───────────────────
+production/uploads/
+production/vectordb/
+production/models/
+
+# ── Node / Frontend ───────────────────────────────────────
+node_modules/
+frontend/dist/
+frontend/.vite/
+.npm/
+
+# ── SSL Certificates ──────────────────────────────────────
+nginx/ssl/
+*.pem
+*.key
+*.crt
+
+# ── Database files ────────────────────────────────────────
+*.db
+*.sqlite
+
+# ── OS ───────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+
+# ── IDE ──────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Workspace level (not project files) ──────────────────
+venv/
+models/
+setup.sh
+test.jpg
+test.pdf
+db_setup.sql
+avaniko-gateway/
