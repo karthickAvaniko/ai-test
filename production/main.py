@@ -204,7 +204,7 @@ async def server_error(request: Request, exc):
         content={"error": "Internal server error"}
     )
 
-# ── Run ──────────────────────────────────────────────────
+# ── Run ──────────────────────────────────────────────
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
