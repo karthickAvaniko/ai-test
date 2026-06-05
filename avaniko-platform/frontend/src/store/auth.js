@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 import { authAPI } from "../lib/api";
 
 export const useAuth = create(
@@ -11,25 +11,30 @@ export const useAuth = create(
 
       login: async (email, password) => {
         const { data } = await authAPI.login({ email, password });
-        localStorage.setItem("token", data.token);
-        set({ user: data, token: data.token });
+        // ✅ Zustand persist handles storage — no manual localStorage needed
+        set({ user: data.user ?? data, token: data.token });
         return data;
       },
 
       signup: async (name, email, password) => {
         const { data } = await authAPI.signup({ name, email, password });
-        localStorage.setItem("token", data.token);
-        set({ user: data, token: data.token });
+        // ✅ Zustand persist handles storage — no manual localStorage needed
+        set({ user: data.user ?? data, token: data.token });
         return data;
       },
 
       setApiKey: (key) => set({ apiKey: key }),
 
       logout: () => {
-        localStorage.removeItem("token");
+        // ✅ Clear Zustand persisted storage completely
+        useAuth.persist.clearStorage();
         set({ user: null, token: null, apiKey: null });
       }
     }),
-    { name: "avaniko-auth", partialize: (s) => ({ user: s.user, token: s.token, apiKey: s.apiKey }) }
+    {
+      name: "avaniko-auth",
+      storage: createJSONStorage(() => localStorage),
+      partialize: (s) => ({ user: s.user, token: s.token, apiKey: s.apiKey })
+    }
   )
 );

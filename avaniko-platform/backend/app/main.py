@@ -12,9 +12,9 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
-    print(f"✅ {settings.APP_NAME} v{settings.VERSION} ready")
+    print(f"[OK] {settings.APP_NAME} v{settings.VERSION} ready")
     yield
-    print("👋 Shutting down")
+    print("[STOP] Shutting down")
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -50,13 +50,33 @@ app.add_middleware(
     expose_headers=["X-Response-Time", "X-Request-ID"]
 )
 
-# ── Request timing ────────────────────────────────────────
+from database import init_db, AsyncSessionLocal, RequestLog
+
+# ── Request logging ────────────────────────────────────────
 @app.middleware("http")
-async def timing_middleware(request: Request, call_next):
+async def logging_middleware(request: Request, call_next):
     start    = time.time()
     response = await call_next(request)
     ms       = int((time.time() - start) * 1000)
     response.headers["X-Response-Time"] = f"{ms}ms"
+
+    # Log to RequestLog table
+    if request.url.path.startswith(("/v1/", "/auth/")):
+        try:
+            async with AsyncSessionLocal() as db:
+                log = RequestLog(
+                    method=request.method,
+                    endpoint=request.url.path,
+                    response_status=response.status_code,
+                    response_time_ms=ms,
+                    ip_address=request.client.host if request.client else None,
+                    user_agent=request.headers.get("user-agent", "")
+                )
+                db.add(log)
+                await db.commit()
+        except Exception as e:
+            print(f"[Error] Logging failed: {e}")
+
     return response
 
 # ── Routers ──────────────────────────────────────────────

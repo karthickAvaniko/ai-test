@@ -6,8 +6,13 @@ const BASE_URL = import.meta.env.VITE_API_URL || "https://api.avaniko.com";
 export const dashApi = axios.create({ baseURL: BASE_URL });
 
 dashApi.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  try {
+    const authData = JSON.parse(localStorage.getItem("avaniko-auth"));
+    const token = authData?.state?.token;
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+  } catch (e) {
+    // ignore parse errors
+  }
   return config;
 });
 
@@ -15,8 +20,8 @@ dashApi.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      localStorage.removeItem("token");
-      window.location.href = "/login";
+      // ✅ Use custom event so React Router handles navigation (no full page reload)
+      window.dispatchEvent(new Event("auth:logout"));
     }
     return Promise.reject(err);
   }
@@ -87,9 +92,17 @@ export async function* streamChat({ apiKey, messages, model, system, projectId }
       if (dataStr === "[DONE]") return;
       try {
         const data  = JSON.parse(dataStr);
+        if (data.error) {
+          console.error("Backend returned error during stream:", data.error);
+          throw new Error(data.error.message || "Unknown stream error");
+        }
         const token = data.choices?.[0]?.delta?.content;
         if (token) yield token;
-      } catch {}
+      } catch (e) {
+        if (e.message !== "Unexpected end of JSON input" && !e.message.includes("Unexpected token")) {
+          throw e; // Rethrow actual API errors
+        }
+      }
     }
   }
 }

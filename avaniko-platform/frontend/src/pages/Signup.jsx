@@ -24,36 +24,51 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white">Avaniko AI</h1>
-          <p className="text-gray-400 mt-2">Create your account</p>
+    <div className="min-h-screen bg-bg relative overflow-hidden flex items-center justify-center px-4">
+      {/* Animated Background */}
+      <div className="bg-mesh"></div>
+      <div className="orb orb-1"></div>
+      <div className="orb orb-2"></div>
+
+      <div className="w-full max-w-md relative z-10 animate-fade-up">
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-bold font-display text-white mb-2">
+            Join <span className="text-gradient">Avaniko</span>
+          </h1>
+          <p className="text-gray-400">Create your AI platform account</p>
         </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8">
-          <form onSubmit={handleSubmit} className="space-y-5">
+
+        <div className="glass rounded-2xl p-8 glass-hover">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {[
               { label: "Name",     key: "name",     type: "text",     placeholder: "Your name" },
               { label: "Email",    key: "email",    type: "email",    placeholder: "you@example.com" },
               { label: "Password", key: "password", type: "password", placeholder: "••••••••" },
             ].map(({ label, key, type, placeholder }) => (
               <div key={key}>
-                <label className="block text-sm text-gray-400 mb-1">{label}</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1.5">{label}</label>
                 <input
                   type={type} value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:border-indigo-500 focus:outline-none"
+                  className="w-full input-premium rounded-xl px-4 py-3"
                   placeholder={placeholder} required
                 />
               </div>
             ))}
+            
             <button type="submit" disabled={loading}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition disabled:opacity-50">
+              className="w-full btn-glow text-white font-semibold py-3.5 rounded-xl transition disabled:opacity-50 mt-4">
               {loading ? "Creating account..." : "Create Account"}
             </button>
           </form>
-          <p className="text-center text-gray-500 text-sm mt-6">
-            Have an account? <Link to="/login" className="text-indigo-400 hover:underline">Sign in</Link>
-          </p>
+
+          <div className="mt-8 pt-6 border-t border-gray-800/50 text-center">
+            <p className="text-gray-400 text-sm">
+              Already have an account?{" "}
+              <Link to="/login" className="text-indigo-400 hover:text-indigo-300 font-medium transition">
+                Sign in instead
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

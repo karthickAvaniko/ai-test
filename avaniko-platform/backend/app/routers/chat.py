@@ -96,6 +96,8 @@ async def chat_completions(
                 ms = int((time.time() - start) * 1000)
                 await _log_usage(db, api_key_meta, model, "/v1/chat/completions", 0, tokens, ms, "success")
             except Exception as e:
+                import traceback
+                traceback.print_exc()
                 err = {"error": {"message": str(e), "type": "gateway_error"}}
                 yield f"data: {json.dumps(err)}\n\n"
 

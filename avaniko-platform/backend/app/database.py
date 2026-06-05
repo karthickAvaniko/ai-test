@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy import Column, String, Boolean, Integer, BigInteger, Float, DateTime, Text, ARRAY
-from sqlalchemy.dialects.postgresql import UUID, JSONB, INET, DECIMAL
+from sqlalchemy import Column, String, Boolean, Integer, BigInteger, Float, DateTime, Text, ARRAY, DECIMAL
+from sqlalchemy.dialects.postgresql import UUID, JSONB, INET
 from sqlalchemy.sql import func
 import uuid
 from config import get_settings
@@ -10,10 +10,12 @@ settings = get_settings()
 
 engine = create_async_engine(
     settings.DATABASE_URL,
-    pool_size=20,
-    max_overflow=40,
+    pool_size=5,
+    max_overflow=10,
     pool_pre_ping=True,
-    echo=settings.DEBUG
+    pool_recycle=3600,
+    echo=settings.DEBUG,
+    connect_args={"ssl": False}  # Disable SSL for local dev on Windows
 )
 
 AsyncSessionLocal = async_sessionmaker(
@@ -140,5 +142,14 @@ async def get_db():
             await session.close()
 
 async def init_db():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    """Create all tables — safe for multi-worker startup (checkfirst=True)."""
+    try:
+        async with engine.begin() as conn:
+            # checkfirst=True prevents errors if tables already exist
+            await conn.run_sync(Base.metadata.create_all, checkfirst=True)
+    except Exception as e:
+        # Race condition on multi-worker startup — tables already created by another worker
+        if "already exists" in str(e) or "duplicate" in str(e).lower():
+            pass  # Tables exist, that's fine
+        else:
+            raise
